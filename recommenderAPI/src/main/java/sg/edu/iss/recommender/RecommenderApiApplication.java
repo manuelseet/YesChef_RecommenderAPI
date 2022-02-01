@@ -17,11 +17,67 @@ public class RecommenderApiApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(RecommenderApiApplication.class, args);
-		testApi();
+		//testApi();
+		testFlaskApi(10, 20);
 
 		
 	}
 	
+	public static void testFlaskApi(int x1, int x2) 
+	{
+		String uriString1 = "http://127.0.0.1:5000/model1?x=" + x1;
+		
+		HttpRequest request1 = HttpRequest.newBuilder()
+				.uri(URI.create(uriString1))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+		
+		
+		String uriString2 = "http://127.0.0.1:5000/model2?x=" + x2;
+		
+		HttpRequest request2 = HttpRequest.newBuilder()
+				.uri(URI.create(uriString2))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+		
+		try 
+		{
+			HttpResponse<String> response1 = HttpClient.newHttpClient().send(request1, HttpResponse.BodyHandlers.ofString());
+			HttpResponse<String> response2 = HttpClient.newHttpClient().send(request2, HttpResponse.BodyHandlers.ofString());
+			if (response1!= null && response2!= null) 
+			{
+				
+				//Model 2-------------------
+				
+				
+				String result1 = (String) response1.body().toString();
+				
+				System.out.println("===========MODEL 1===================");
+				System.out.println("API Resp1 Status: \t" + response1.statusCode());
+				System.out.println("Source1 API URL: \t" + response1.uri().toString());
+				System.out.println("API Input1: \t\t" + x1);
+				System.out.println("API Result1: \t\t" + result1);
+				
+				//Model 2-------------------
+				
+				
+				String result2 = (String) response2.body().toString();
+				
+				System.out.println("===========MODEL 2===================");
+				System.out.println("API Resp2 Status: \t" + response2.statusCode());
+				System.out.println("Source2 API URL: \t" + response2.uri().toString());
+				System.out.println("API Input2: \t\t" + x2);
+				System.out.println("API Result2: \t\t" + result2);
+				
+			}
+		}
+		catch (Exception e) 
+		{
+				System.out.println("There was a connection error");
+		}
+		
+	}
+		
 	public static void testApi() {
 		System.out.println("Trying out Test API");
 		HttpRequest request = HttpRequest.newBuilder()
