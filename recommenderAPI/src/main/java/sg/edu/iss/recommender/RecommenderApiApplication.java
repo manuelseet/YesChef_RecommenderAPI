@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -18,10 +19,48 @@ public class RecommenderApiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(RecommenderApiApplication.class, args);
 		//testApi();
-		testFlaskApi(10, 20);
+		//testFlaskApi(10, 20);
+		testAdProjectFlaskApi("diegoAlpin", 3);
 
+	}
+	
+	
+	public static void testAdProjectFlaskApi(String userId, int max) 
+	{
+		String uriString1 = "http://127.0.0.1:5000/singleRecipeReco?userId=" + userId;
+		HttpRequest request1 = HttpRequest.newBuilder()
+				.uri(URI.create(uriString1))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+		try 
+		{
+			HttpResponse<String> response1 = HttpClient.newHttpClient().send(request1, HttpResponse.BodyHandlers.ofString());
+			
+			if (response1!= null) {
+				JSONObject jo = (JSONObject) new JSONParser().parse(response1.body());
+				String receivedUserId = (String) jo.get("userId");
+				String queryRecipeId = (String) jo.get("query_recipeID");
+				ArrayList<String> recommendList = (ArrayList<String>) jo.get("recommendations");
+				
+				System.out.println("===========API: SINGLE_RECIPE RECOMMENDATIONS=================");
+				System.out.println("API Resp1 Status: \t" + response1.statusCode());
+				System.out.println("Source1 API URL: \t" + response1.uri().toString());
+				System.out.println("Received UserId: \t" + receivedUserId);
+				System.out.println("Reference RecipeID: \t" + queryRecipeId);
+				System.out.println("");
+				if (recommendList != null)
+					recommendList.stream().map(x -> "Recommended RecipeID:\t" + x).forEach(System.out::println);
+				else
+					System.out.println("RecommendList is null");
+			}
+		}
+		catch (Exception e) {
+				System.out.println("There was a connection error");
+		}
 		
 	}
+	
+	
 	
 	public static void testFlaskApi(int x1, int x2) 
 	{
