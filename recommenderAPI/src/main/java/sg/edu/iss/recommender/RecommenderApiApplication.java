@@ -25,9 +25,9 @@ public class RecommenderApiApplication {
 	}
 	
 	
-	public static void testAdProjectFlaskApi(String userId, int max) 
+	public static void testAdProjectFlaskApi(String userId, int noOfRecommendations) 
 	{
-		String uriString1 = "http://127.0.0.1:5000/singleRecipeReco?userId=" + userId;
+		String uriString1 = "http://127.0.0.1:5000/singleRecipeReco?userId=" + userId + "&n=" + noOfRecommendations;
 		HttpRequest request1 = HttpRequest.newBuilder()
 				.uri(URI.create(uriString1))
 				.method("GET", HttpRequest.BodyPublishers.noBody())
