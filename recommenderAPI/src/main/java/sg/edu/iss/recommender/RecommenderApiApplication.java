@@ -5,6 +5,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -18,50 +21,113 @@ public class RecommenderApiApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(RecommenderApiApplication.class, args);
-		//testApi();
-		//testFlaskApi(10, 20);
-		testAdProjectFlaskApi("diegoAlpin", 3);
 
+		
+		HashMap<String, List<String>> recommendMap1 = getLandingSingleRecipeReco("xxx@gmail.com", 10);
+		printLandingSingleRecipeReco(recommendMap1); //for inspection purposes only
+		
+		List<String> recommendList1 = getLandingYouMightLikeReco("xxx@gmail.com", 10);
+		printLandingYouMightLikeReco(recommendList1); //for inspection purposes only
 	}
 	
 	
-	public static void testAdProjectFlaskApi(String userId, int noOfRecommendations) 
+	//######################################### --ML PRIORITY #1-- #############################################
+	public static HashMap<String, List<String>> getLandingSingleRecipeReco(String userEmail, int noOfRecommendations) 
 	{
-		String uriString1 = "http://127.0.0.1:5000/singleRecipeReco?userId=" + userId + "&n=" + noOfRecommendations;
+		String uriString1 = "http://127.0.0.1:5000/landingSingleRecipeReco?userId=" + userEmail + "&n=" + noOfRecommendations;
 		HttpRequest request1 = HttpRequest.newBuilder()
 				.uri(URI.create(uriString1))
 				.method("GET", HttpRequest.BodyPublishers.noBody())
 				.build();
+		
+		HashMap<String, List<String>> recommendMap = null;
+		
 		try 
 		{
 			HttpResponse<String> response1 = HttpClient.newHttpClient().send(request1, HttpResponse.BodyHandlers.ofString());
-			
 			if (response1!= null) {
 				JSONObject jo = (JSONObject) new JSONParser().parse(response1.body());
 				String receivedUserId = (String) jo.get("userId");
 				String queryRecipeId = (String) jo.get("query_recipeID");
 				ArrayList<String> recommendList = (ArrayList<String>) jo.get("recommendations");
 				
-				System.out.println("===========API: SINGLE_RECIPE RECOMMENDATIONS=================");
+				recommendMap = new HashMap<>();
+				recommendMap.put("queryRecipeId", new ArrayList<>(Arrays.asList(queryRecipeId)));
+				recommendMap.put("recommendList", recommendList);
+				
+				System.out.println("===========API PRIORITY #1: Landing Page SINGLE_RECIPE RECOS=================");
 				System.out.println("API Resp1 Status: \t" + response1.statusCode());
 				System.out.println("Source1 API URL: \t" + response1.uri().toString());
-				System.out.println("Received UserId: \t" + receivedUserId);
-				System.out.println("Reference RecipeID: \t" + queryRecipeId);
-				System.out.println("");
-				if (recommendList != null)
-					recommendList.stream().map(x -> "Recommended RecipeID:\t" + x).forEach(System.out::println);
-				else
-					System.out.println("RecommendList is null");
+				System.out.println("UserId (email): \t" + receivedUserId);
 			}
 		}
 		catch (Exception e) {
 				System.out.println("There was a connection error");
 		}
 		
+		return recommendMap;
+		
+	}
+	
+	public static void printLandingSingleRecipeReco(HashMap<String, List<String>> recommendMap) {
+		
+		System.out.println("***PRINT RESULT: LANDING PAGE - SINGLE_RECIPE RECOS***");
+		System.out.println("Query RecipeID: \t" + recommendMap.get("queryRecipeId").get(0));
+		System.out.println("");
+		List<String> recommendList = recommendMap.get("recommendList");
+		if (recommendList != null)
+			recommendList.stream().map(x -> "Recommended RecipeID:\t" + x).forEach(System.out::println);
+		else
+			System.out.println("RecommendList is null");
+	}
+	
+	//######################################### --ML PRIORITY #2-- #############################################
+	public static List<String> getLandingYouMightLikeReco(String userEmail, int noOfRecommendations) 
+	{
+		String uriString1 = "http://127.0.0.1:5000/landingYouMightLikeReco?userId=" + userEmail + "&n=" + noOfRecommendations;
+		HttpRequest request1 = HttpRequest.newBuilder()
+				.uri(URI.create(uriString1))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+		
+		List<String> recommendList = null;
+		
+		try 
+		{
+			HttpResponse<String> response1 = HttpClient.newHttpClient().send(request1, HttpResponse.BodyHandlers.ofString());
+			if (response1!= null) {
+				JSONObject jo = (JSONObject) new JSONParser().parse(response1.body());
+				String receivedUserId = (String) jo.get("userId");
+				recommendList = (ArrayList<String>) jo.get("recommendations");
+				
+				
+				System.out.println("===========API PRIORITY #2: Landing Page YOU MIGHT LIKE RECOS=================");
+				System.out.println("API Resp1 Status: \t" + response1.statusCode());
+				System.out.println("Source1 API URL: \t" + response1.uri().toString());
+				System.out.println("UserId (email): \t" + receivedUserId);
+			}
+		}
+		catch (Exception e) {
+				System.out.println("There was a connection error");
+		}
+		
+		return recommendList;
+		
+	}
+	
+	public static void printLandingYouMightLikeReco(List<String> recommendList) {
+		
+		System.out.println("***PRINT RESULT: LANDING PAGE - YOU MIGHT LIKE RECOS****");
+		if (recommendList != null)
+			recommendList.stream().map(x -> "Recommended RecipeID:\t" + x).forEach(System.out::println);
+		else
+			System.out.println("RecommendList is null");
 	}
 	
 	
 	
+	
+	//######################################### --Old tests-- #############################################
 	public static void testFlaskApi(int x1, int x2) 
 	{
 		String uriString1 = "http://127.0.0.1:5000/model1?x=" + x1;
