@@ -17,7 +17,7 @@ requests
 json
 ```
 
-Named Entity Recognition (Part of Speech Tagging) is done for feature vectorization:
+Named Entity Recognition (Part of Speech Tagging) is done for feature vectorization in scheduled MLOps:
 To support this, download `en_core_web_sm` as follows:
 ```python -m spacy download en_core_web_sm```
 
