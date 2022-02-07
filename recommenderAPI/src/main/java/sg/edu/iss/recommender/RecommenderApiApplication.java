@@ -22,14 +22,14 @@ public class RecommenderApiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(RecommenderApiApplication.class, args);
 
-		
+		//#### --ML PRIORITY #1-- ###
 		HashMap<String, List<String>> recommendMap1 = getLandingSingleRecipeReco("xxx@gmail.com", 10);
 		printLandingSingleRecipeReco(recommendMap1); //for inspection purposes only
 		
+		//#### --ML PRIORITY #2-- ###
 		List<String> recommendList1 = getLandingYouMightLikeReco("xxx@gmail.com", 10);
 		printLandingYouMightLikeReco(recommendList1); //for inspection purposes only
 	}
-	
 	
 	//######################################### --ML PRIORITY #1-- #############################################
 	public static HashMap<String, List<String>> getLandingSingleRecipeReco(String userEmail, int noOfRecommendations) 
@@ -127,7 +127,9 @@ public class RecommenderApiApplication {
 	
 	
 	
-	//######################################### --Old tests-- #############################################
+	
+	
+	//# --Old tests-- #
 	public static void testFlaskApi(int x1, int x2) 
 	{
 		String uriString1 = "http://127.0.0.1:5000/model1?x=" + x1;
