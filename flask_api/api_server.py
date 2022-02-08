@@ -5,12 +5,21 @@ from datetime import datetime
 from sklearn.metrics import jaccard_score # Cosine Similarity
 import atexit
 
+
+import custom_word_lists as cwl
+import pandas as pd
+import spacy
+from spacy import displacy
+from pattern.text.en import singularize
+import string
+
+
 from apscheduler.schedulers.background import BackgroundScheduler
 
 ###Import other py files
 from dao import get_database
 from service_ml_01 import *
-#from service_mlops import *
+from service_mlops import *
 #from service_db_seeding import *
 
 ################# MongoDB settings ##################
@@ -49,7 +58,7 @@ def recommend_you_might_like():
 ##~~~~~~ ML Ops Scheduler ~~~~~~##
 def schedule_MLOps(): 
     print("MLOps is starting %s" % datetime.now())
-    #updateFeatureVector()
+    updateFeatureVector(dbname)
     print("MLOps has ended %s" % datetime.now())
 
 def background_housekeeping():
@@ -65,7 +74,7 @@ atexit.register(lambda: background_housekeeping())
 ##============= run the server ==============##
 if __name__ == '__main__':
     dbname = get_database(db_conn, db_name)
-    scheduler.add_job(func=schedule_MLOps, trigger="interval", seconds=10)
+    scheduler.add_job(func=schedule_MLOps, trigger="interval", seconds=60)
     #scheduler.add_job(myjob, 'cron', hour=0) #this is to run at every clock hour
     scheduler.start()
     app.run(port=5000, debug=True, use_reloader=False)

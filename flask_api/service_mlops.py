@@ -6,24 +6,9 @@ import spacy
 from spacy import displacy
 from pattern.text.en import singularize
 import string
-import custom_word_lists as cwl
-
-db_conn = "mongodb+srv://user:password2022@cluster0.qisep.mongodb.net/mongopractice?retryWrites=true&w=majority"
-db_name = "YesChefDB" #"dummy_recipes"
-recipe_collection_name = "RecipeNew"
-f_vec_collection_name = "feature_vector"
-
-if __name__ == "__main__":    
-    dbname = get_database(db_conn, db_name)
-    recipe_collection = dbname[recipe_collection_name]
-    feature_collection = dbname[f_vec_collection_name]
 
 
-cursor = recipe_collection.find()
-list_cur = list(cursor)
-df = pd.DataFrame(list_cur)
-
-
+############### HELPER FUNCTIONS #######################
 def my_ingredient_parser(ingredient_name, NER, isDebugging):
 
     ing_brand_removed = ingredient_name[ingredient_name.find('®')+1:] #remove brand names
@@ -54,67 +39,89 @@ def my_ingredient_parser(ingredient_name, NER, isDebugging):
     
     return parsed_ing
 
-ingredient_vocab = []
-recipe_list = recipe_collection.find()
-for recipe in recipe_list:
-    if "ingredients" in recipe:
-        ingredient_list = recipe["ingredients"]
-        for ing in ingredient_list:
-            if "ingredient" in ing:
-                ing_name = ing["ingredient"]
-                if ing_name != None:
-                    ingredient_vocab.append(ing_name.lower())
-ingredient_vocab = list(set(ingredient_vocab))
-
-NER_engine = spacy.load("en_core_web_sm")
-
-parsed_ingredient_vocab = []
-for ing in ingredient_vocab: 
-    ing_parsed = my_ingredient_parser(ing, NER_engine, False)
-    parsed_ingredient_vocab.append(ing_parsed)
-
-parsed_ingredient_vocab = list(set(parsed_ingredient_vocab))
-print(len(parsed_ingredient_vocab))
-parsed_ingredient_vocab.insert(0, "recipeID")
-
-
 def calculateBOW(wordset,l_doc):
   tf_diz = dict.fromkeys(wordset,0)
   for word in l_doc:
       tf_diz[word]=1 #l_doc.count(word)
   return tf_diz
 
-allBOWs = []
-recipe_list = recipe_collection.find()
-for recipe in recipe_list:
-    recipe_ing = []
-    if "ingredients" in recipe:
-        ingredient_list = recipe["ingredients"]
-        for ing in ingredient_list:
-            if "ingredient" in ing:
-                ing_name = ing["ingredient"]
-                if ing_name != None:
-                    ing_name = ing_name.lower()
-                    ing_parsed = my_ingredient_parser(ing_name, NER_engine, False)
-                    if ing_parsed in parsed_ingredient_vocab:
-                        recipe_ing.append(ing_parsed)
-    bow0 = calculateBOW(parsed_ingredient_vocab,recipe_ing)
+############### FEATURE ENGINEERING #######################
+def updateFeatureVector(dbname):
+    print("----------> entering feature vector method")
+
+    recipe_collection_name = "RecipeNew"
+    f_vec_collection_name = "feature_vector"
+
+    #=========== PREPARE DATA ===========
+    recipe_collection = dbname[recipe_collection_name]
+    feature_collection = dbname[f_vec_collection_name]
+
+
+    cursor = recipe_collection.find()
+    list_cur = list(cursor)
+    df = pd.DataFrame(list_cur)
+
+    #=========== GET INGREDIENT VOCAB ===========
+    ingredient_vocab = []
+    recipe_list = recipe_collection.find()
+    for recipe in recipe_list:
+        if "ingredients" in recipe:
+            ingredient_list = recipe["ingredients"]
+            for ing in ingredient_list:
+                if "ingredient" in ing:
+                    ing_name = ing["ingredient"]
+                    if ing_name != None:
+                        ingredient_vocab.append(ing_name.lower())
+    ingredient_vocab = list(set(ingredient_vocab))
     
-    recipeID = str(recipe["_id"])
-    bow0["recipeID"] = recipeID
-    allBOWs.append(bow0)
+    #===========. ENGINEERING FEATURE VOCAB ===========
+    NER_engine = spacy.load("en_core_web_sm")
+    
+    parsed_ingredient_vocab = []
+    for ing in ingredient_vocab: 
+        ing_parsed = my_ingredient_parser(ing, NER_engine, False)
+        parsed_ingredient_vocab.append(ing_parsed)
 
+    parsed_ingredient_vocab = list(set(parsed_ingredient_vocab))
+    print(len(parsed_ingredient_vocab))
+    parsed_ingredient_vocab.insert(0, "recipeID")
+    print("-------->exiting feature vector method", parsed_ingredient_vocab[:10])
 
-df_bow = pd.DataFrame(allBOWs)
-df_bow.set_index("recipeID", inplace = True)
-df_bow_new = df_bow.drop([""], axis = 1)
+    
 
-df_bow_dict = df_bow.to_dict('index')
-f_vec_collection = "feature_vector"
-feature_collection = dbname[f_vec_collection]
-feature_collection.delete_many({})
-feature_collection.insert_one(df_bow_dict)
+    #=========== FEATURE VECTORIZATION ===========
+    allBOWs = []
+    recipe_list = recipe_collection.find()
+    for recipe in recipe_list:
+        recipe_ing = []
+        if "ingredients" in recipe:
+            ingredient_list = recipe["ingredients"]
+            for ing in ingredient_list:
+                if "ingredient" in ing:
+                    ing_name = ing["ingredient"]
+                    if ing_name != None:
+                        ing_name = ing_name.lower()
+                        ing_parsed = my_ingredient_parser(ing_name, NER_engine, False)
+                        if ing_parsed in parsed_ingredient_vocab:
+                            recipe_ing.append(ing_parsed)
+        bow0 = calculateBOW(parsed_ingredient_vocab,recipe_ing)
+        
+        recipeID = str(recipe["_id"])
+        bow0["recipeID"] = recipeID
+        allBOWs.append(bow0)
 
+    #=========== FEATURE VECTORIZATION ===========
+    df_bow = pd.DataFrame(allBOWs)
+    df_bow.set_index("recipeID", inplace = True)
+    df_bow_new = df_bow.drop([""], axis = 1)
 
-countRecipes = df_bow_new.sum()
-countRecipes.to_excel("feature_count.xlsx")
+    df_bow_dict = df_bow.to_dict('index')
+    f_vec_collection = "feature_vector"
+    feature_collection = dbname[f_vec_collection]
+    feature_collection.delete_many({})
+    feature_collection.insert_one(df_bow_dict)
+
+    #=========== PRINT TO EXCEL ===========  
+    countRecipes = df_bow_new.sum()
+    countRecipes.to_excel("feature_vec.xlsx")
+    
