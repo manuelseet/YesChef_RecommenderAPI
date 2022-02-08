@@ -172,21 +172,6 @@ for recipe in recipe_list:
         if tag["type"] == "dietary":
             tags.append(tag["display_name"])
 
-    if "5 Ingredients or Less" in difficulty:
-        difficulty.remove("5 Ingredients or Less")
-
-
-    if len(difficulty) != 0 and time == 0:
-        if "Under 30 Minutes" in difficulty:
-            time = random.randrange(15, 30, 5)
-        elif "Easy" in difficulty:
-            time = random.randrange(30, 50, 5)
-    elif time == 0:
-        if "Bake" in techniques:
-            time = random.randrange(70, 150, 5)
-        else:
-            time = random.randrange(45, 100, 5)
-
             
     ########### CREATE RECIPE DOC ##############################
     recipe_doc = {

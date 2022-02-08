@@ -5,7 +5,7 @@ from datetime import datetime
 from sklearn.metrics import jaccard_score # Cosine Similarity
 import atexit
 
-#from APScheduler.scheduler import Scheduler
+from apscheduler.schedulers.background import BackgroundScheduler
 
 ###Import other py files
 from dao import get_database
@@ -23,8 +23,6 @@ f_vec_collection = "feature_vector"
 
 ################# Flask API ##################
 app = Flask(__name__)
-#cron = Scheduler(daemon=True) #opne a background thread
-#cron.start()
 
 @app.route('/landingSingleRecipeReco', methods=['GET'])
 def recommend_single_recipe():
@@ -46,19 +44,31 @@ def recommend_you_might_like():
     response_dict = {"userId": thisUserId, "recommendations": recommend_list}
     return response_dict
 
-"""
-@cron.interval_schedule(seconds=5)
-def schedule_featurization(): 
+
+
+##~~~~~~ ML Ops Scheduler ~~~~~~##
+def schedule_MLOps(): 
+    print("MLOps is starting %s" % datetime.now())
     #updateFeatureVector()
-    print("This test runs every 5 seconds %s" % datetime.now())
+    print("MLOps has ended %s" % datetime.now())
 
-# destroy the background thread if web is stopped
-atexit.register(lambda: cron.shutdown(wait=False))
-"""
+def background_housekeeping():
+    scheduler.shutdown(wait = True)
+    print("housekeeping at shutdown")
 
-# run the server
+scheduler = BackgroundScheduler()
+
+# destroy background thread when api is stopped
+atexit.register(lambda: background_housekeeping())
+
+
+##============= run the server ==============##
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)  
     dbname = get_database(db_conn, db_name)
+    scheduler.add_job(func=schedule_MLOps, trigger="interval", seconds=10)
+    #scheduler.add_job(myjob, 'cron', hour=0) #this is to run at every clock hour
+    scheduler.start()
+    app.run(port=5000, debug=True, use_reloader=False)
+
 
 
