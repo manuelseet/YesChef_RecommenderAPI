@@ -1,18 +1,6 @@
-import pandas as pd
-from flask import Flask, request, jsonify
-from sklearn.metrics.pairwise import cosine_similarity  # Cosine Similarity
+from flask import Flask, request
 from datetime import datetime
-from sklearn.metrics import jaccard_score  # Cosine Similarity
 import atexit
-
-
-import custom_word_lists as cwl
-import pandas as pd
-import spacy
-from spacy import displacy
-from pattern.text.en import singularize
-import string
-
 
 from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -27,9 +15,6 @@ from service_mlops import *
 
 db_conn = "mongodb+srv://user:password2022@cluster0.qisep.mongodb.net/mongopractice?retryWrites=true&w=majority"
 db_name = "YesChefDB"  # "dummy_recipes"
-recipe_collection = "RecipeNew"
-f_vec_collection = "feature_vector"
-
 
 ################# Flask API ##################
 app = Flask(__name__)

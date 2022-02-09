@@ -1,5 +1,4 @@
 import pandas as pd
-from sklearn.metrics.pairwise import cosine_similarity  # Cosine Similarity
 import numpy as np
 from sklearn.metrics import jaccard_score  # Cosine Similarity
 
