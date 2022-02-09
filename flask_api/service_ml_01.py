@@ -7,7 +7,7 @@ recipe_collection_name = "RecipeNew"
 f_vec_collection_name = "feature_vector"
 u_act_collection_name = "UserActivity"
 
-################# Single Recipe Recommendations ##################
+################# Landing Single Recipe Recommendations ##################
 
 def obtain_single_recipe_reco(userEmail, max, dbname): 
     
