@@ -29,7 +29,8 @@ def recommend_single_recipe():
     (query_recipeID, recommend_list) = obtain_single_recipe_reco(
         thisUserId, noOfRecommendations, mongoDB)  # must do dependency injection
     response_dict = {"userId": thisUserId,
-                     "query_recipeID": query_recipeID, "recommendations": recommend_list}
+                     "query_recipeID": query_recipeID,
+                     "recommendations": recommend_list}
     return response_dict
 
 
@@ -39,7 +40,8 @@ def recommend_you_might_like():
     noOfRecommendations = request.args.get('n', type=int)
     recommend_list = obtain_you_might_like_reco(
         thisUserId, noOfRecommendations, mongoDB)  # must do dependency injection
-    response_dict = {"userId": thisUserId, "recommendations": recommend_list}
+    response_dict = {"userId": thisUserId,
+                     "recommendations": recommend_list}
     return response_dict
 
 
@@ -63,7 +65,7 @@ def schedule_MLOps():
 
 def background_housekeeping():
     scheduler.shutdown(wait=True)
-    print("housekeeping at shutdown")
+    print("Perform housekeeping at shutdown")
 
 
 scheduler = BackgroundScheduler()
@@ -74,7 +76,7 @@ atexit.register(lambda: background_housekeeping())
 
 ##============= run the server ==============##
 if __name__ == '__main__':
-    scheduler.add_job(func=schedule_MLOps, trigger="interval", minutes=60)
+    scheduler.add_job(func=schedule_MLOps, trigger="interval", seconds=20)
     # scheduler.add_job(myjob, 'cron', hour=0) #this is to run at every clock hour
     scheduler.start()
     app.run(port=5000, debug=True, use_reloader=False)

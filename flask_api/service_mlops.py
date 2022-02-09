@@ -1,4 +1,4 @@
-from dao import get_database
+from dao import *
 import custom_word_lists as cwl
 
 import pandas as pd
@@ -7,8 +7,7 @@ from spacy import displacy
 from pattern.text.en import singularize
 import string
 
-
-############### HELPER FUNCTIONS #######################
+############### CALCULATING FUNCTIONS #######################
 def my_ingredient_parser(ingredient_name, NER, isDebugging):
 
     ing_brand_removed = ingredient_name[ingredient_name.find('®')+1:] #remove brand names
@@ -47,23 +46,16 @@ def calculateBOW(wordset,l_doc):
 
 ############### FEATURE ENGINEERING #######################
 def updateFeatureVector(dbname):
-    print("----------> entering feature vector method")
-
-    recipe_collection_name = "RecipeNew"
-    f_vec_collection_name = "feature_vector"
+    print("#################> entering feature vector method##############")
 
     #=========== PREPARE DATA ===========
-    recipe_collection = dbname[recipe_collection_name]
-    feature_collection = dbname[f_vec_collection_name]
+    recipe_list = get_all_recipes(dbname)
+    feature_collection = get_feature_vector(dbname)
 
-
-    cursor = recipe_collection.find()
-    list_cur = list(cursor)
-    df = pd.DataFrame(list_cur)
+    all_recipeIDs = []
 
     #=========== GET INGREDIENT VOCAB ===========
     ingredient_vocab = []
-    recipe_list = recipe_collection.find()
     for recipe in recipe_list:
         if "ingredients" in recipe:
             ingredient_list = recipe["ingredients"]
@@ -85,13 +77,13 @@ def updateFeatureVector(dbname):
     parsed_ingredient_vocab = list(set(parsed_ingredient_vocab))
     print(len(parsed_ingredient_vocab))
     parsed_ingredient_vocab.insert(0, "recipeID")
-    print("-------->exiting feature vector method", parsed_ingredient_vocab[:10])
+    print("-------->finished parsing method ", parsed_ingredient_vocab[:10])
 
     
 
     #=========== FEATURE VECTORIZATION ===========
     allBOWs = []
-    recipe_list = recipe_collection.find()
+    recipe_list = get_all_recipes(dbname)
     for recipe in recipe_list:
         recipe_ing = []
         if "ingredients" in recipe:
@@ -105,12 +97,11 @@ def updateFeatureVector(dbname):
                         if ing_parsed in parsed_ingredient_vocab:
                             recipe_ing.append(ing_parsed)
         bow0 = calculateBOW(parsed_ingredient_vocab,recipe_ing)
-        
         recipeID = str(recipe["_id"])
         bow0["recipeID"] = recipeID
         allBOWs.append(bow0)
 
-    #=========== FEATURE VECTORIZATION ===========
+    #=========== PUSHING TO MONGO DB ===========
     df_bow = pd.DataFrame(allBOWs)
     df_bow.set_index("recipeID", inplace = True)
     df_bow_new = df_bow.drop([""], axis = 1)

@@ -153,7 +153,7 @@ public class RecommenderApiApplication {
 				recommendList = (ArrayList<String>) jo.get("recommendations");
 				
 				
-				System.out.println("===========API PRIORITY #4: Landing Page YOU MIGHT LIKE RECOS=================");
+				System.out.println("===========API PRIORITY #4: MORE LIKE THIS RECIPE RECOS=================");
 				System.out.println("API Resp1 Status: \t" + response1.statusCode());
 				System.out.println("Source1 API URL: \t" + response1.uri().toString());
 		
