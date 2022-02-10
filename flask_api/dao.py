@@ -1,4 +1,5 @@
 import pandas as pd
+from bson.objectid import ObjectId
 
 recipe_collection_name = "RecipeNew"
 f_vec_collection_name = "feature_vector"
@@ -28,3 +29,8 @@ def get_this_user_activity(dbname, userEmail):
 def get_all_recipes(dbname):
     recipe_collection = dbname[recipe_collection_name]
     return recipe_collection.find()
+
+
+def get_this_recipe(dbname, recipeId):
+    recipe_collection = dbname[recipe_collection_name]
+    return recipe_collection.find_one({"_id": ObjectId(recipeId)})

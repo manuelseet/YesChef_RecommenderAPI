@@ -34,6 +34,9 @@ public class RecommenderApiApplication {
 		//#### --ML PRIORITY #4-- ###
 		List<String> recommendList2 = getMoreLikeThisRecipeReco("6200687714f22c4340f92e15", 10);
 		printMoreLikeThisRecipeReco(recommendList2); //for inspection purposes only
+		
+		//#### --ML PRIORITY #5-- ###
+		List<String> predictedDiff = getDifficultyPrediction("6200687714f22c4340f92e15");
 	}
 	
 	//######################################### --ML PRIORITY #1-- #############################################
@@ -177,6 +180,37 @@ public class RecommenderApiApplication {
 	}
 	
 	
+	//######################################### --ML PRIORITY #5-- #############################################
+	public static List<String> getDifficultyPrediction(String recipeId) 
+	{
+		String uriString1 = "http://127.0.0.1:5000/predictDifficulty?recipeId=" + recipeId;
+		HttpRequest request1 = HttpRequest.newBuilder()
+				.uri(URI.create(uriString1))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+		
+		List<String> prediction = null;
+		
+		try 
+		{
+			HttpResponse<String> response1 = HttpClient.newHttpClient().send(request1, HttpResponse.BodyHandlers.ofString());
+			if (response1!= null) {
+				JSONObject jo = (JSONObject) new JSONParser().parse(response1.body());
+				prediction = (ArrayList<String>) jo.get("prediction");
+				
+				System.out.println("===========API PRIORITY #5: Difficulty Tag Prediction=================");
+				System.out.println("API Resp Status: \t" + response1.statusCode());
+				System.out.println("Source API URL: \t" + response1.uri().toString());
+				System.out.println("Difficulty prediction: \t" + prediction.get(0));
+			}
+		}
+		catch (Exception e) {
+				System.out.println("There was a connection error");
+		}
+		
+		return prediction;
+		
+	}
 	
 	
 	

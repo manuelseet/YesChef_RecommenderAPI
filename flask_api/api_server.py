@@ -8,6 +8,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from dao import get_database
 from service_ml_01 import *
 from service_ml_02 import *
+from service_ml_tag import *
 from service_mlops import *
 #from service_db_seeding import *
 
@@ -54,6 +55,15 @@ def recommend_more_like_this():
     response_dict = {"recommendations": recommend_list}
     return response_dict
 
+
+@app.route('/predictDifficulty', methods=['GET'])
+def predict_recipe_difficulty():
+    recipeId = request.args.get('recipeId', type=str)
+    prediction = obtain_difficulty_prediction(
+        recipeId, mongoDB)
+    response_dict = {"prediction": prediction}
+    return response_dict
+
 ##~~~~~~ ML Ops Scheduler ~~~~~~##
 
 
@@ -76,7 +86,7 @@ atexit.register(lambda: background_housekeeping())
 
 ##============= run the server ==============##
 if __name__ == '__main__':
-    scheduler.add_job(func=schedule_MLOps, trigger="interval", seconds=20)
+    scheduler.add_job(func=schedule_MLOps, trigger="interval", minutes=60)
     # scheduler.add_job(myjob, 'cron', hour=0) #this is to run at every clock hour
     scheduler.start()
     app.run(port=5000, debug=True, use_reloader=False)
