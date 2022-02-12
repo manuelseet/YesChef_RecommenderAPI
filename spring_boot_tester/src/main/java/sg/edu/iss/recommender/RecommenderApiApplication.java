@@ -26,17 +26,24 @@ public class RecommenderApiApplication {
 		long start = System.currentTimeMillis();
 		
 		//#### --ML PRIORITY #1-- ###
-		HashMap<String, List<String>> recommendMap1 = getLandingSingleRecipeReco("xxx@gmail.com", 10);
-		printLandingSingleRecipeReco(recommendMap1); //for inspection purposes only
+		new Thread(new Runnable() {
+		    public void run() {
+		    	HashMap<String, List<String>> recommendMap1 = getLandingSingleRecipeReco("xxx@gmail.com", 10);
+		    	printLandingSingleRecipeReco(recommendMap1); //for inspection purposes only
+		    }
+		}).start();
 		
 		//#### --ML PRIORITY #2-- ###
-		List<String> recommendList1 = getLandingYouMightLikeReco("xxx@gmail.com", 10);
-		printLandingYouMightLikeReco(recommendList1); //for inspection purposes only
+		new Thread(new Runnable() {
+		    public void run() {
+				List<String> recommendList1 = getLandingYouMightLikeReco("xxx@gmail.com", 10);
+				printLandingYouMightLikeReco(recommendList1); //for inspection purposes only
+		    }
+		}).start();
+		
 		
 		long end = System.currentTimeMillis();
 		long elapsedTime = end - start;
-		
-		
 		
 		
 		//#### --ML PRIORITY #4-- ###
@@ -46,8 +53,11 @@ public class RecommenderApiApplication {
 		//#### --ML PRIORITY #5-- ###
 		List<String> predictedDiff = getDifficultyPrediction("6200687714f22c4340f92e15");
 		
+		long end2 = System.currentTimeMillis();
+		long elapsedTime2 = end2 - start;
 		
 		System.out.println("Elapse Time for Landing Page: " + elapsedTime + " milliseconds");
+		System.out.println("Elapse Time for Others: " + elapsedTime2 + " milliseconds");
 	}
 	
 	//######################################### --ML PRIORITY #1-- #############################################
