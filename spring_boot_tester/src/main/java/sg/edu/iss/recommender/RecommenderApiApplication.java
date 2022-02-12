@@ -28,16 +28,15 @@ public class RecommenderApiApplication {
 		//#### --ML PRIORITY #1-- ###
 		new Thread(new Runnable() {
 		    public void run() {
-		    	HashMap<String, List<String>> recommendMap1 = getLandingSingleRecipeReco("xxx@gmail.com", 10);
-		    	printLandingSingleRecipeReco(recommendMap1); //for inspection purposes only
+				List<String> recommendList1 = getLandingYouMightLikeReco("xxx@gmail.com", 10);
+				printLandingYouMightLikeReco(recommendList1); //for inspection purposes only
 		    }
 		}).start();
 		
-		//#### --ML PRIORITY #2-- ###
 		new Thread(new Runnable() {
 		    public void run() {
-				List<String> recommendList1 = getLandingYouMightLikeReco("xxx@gmail.com", 10);
-				printLandingYouMightLikeReco(recommendList1); //for inspection purposes only
+		    	HashMap<String, List<String>> recommendMap1 = getLandingSingleRecipeReco("xxx@gmail.com", 10);
+		    	printLandingSingleRecipeReco(recommendMap1); //for inspection purposes only
 		    }
 		}).start();
 		
