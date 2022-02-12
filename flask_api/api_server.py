@@ -89,4 +89,4 @@ if __name__ == '__main__':
     scheduler.add_job(func=schedule_MLOps, trigger="interval", minutes=60)
     # scheduler.add_job(myjob, 'cron', hour=0) #this is to run at every clock hour
     scheduler.start()
-    app.run(port=5000, debug=True, use_reloader=False)
+    app.run(port=5000, debug=False, use_reloader=False)

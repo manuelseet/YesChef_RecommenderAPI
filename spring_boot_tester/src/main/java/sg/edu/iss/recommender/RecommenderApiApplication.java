@@ -22,6 +22,9 @@ public class RecommenderApiApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(RecommenderApiApplication.class, args);
 
+		
+		long start = System.currentTimeMillis();
+		
 		//#### --ML PRIORITY #1-- ###
 		HashMap<String, List<String>> recommendMap1 = getLandingSingleRecipeReco("xxx@gmail.com", 10);
 		printLandingSingleRecipeReco(recommendMap1); //for inspection purposes only
@@ -30,6 +33,11 @@ public class RecommenderApiApplication {
 		List<String> recommendList1 = getLandingYouMightLikeReco("xxx@gmail.com", 10);
 		printLandingYouMightLikeReco(recommendList1); //for inspection purposes only
 		
+		long end = System.currentTimeMillis();
+		long elapsedTime = end - start;
+		
+		
+		
 		
 		//#### --ML PRIORITY #4-- ###
 		List<String> recommendList2 = getMoreLikeThisRecipeReco("6200687714f22c4340f92e15", 10);
@@ -37,6 +45,9 @@ public class RecommenderApiApplication {
 		
 		//#### --ML PRIORITY #5-- ###
 		List<String> predictedDiff = getDifficultyPrediction("6200687714f22c4340f92e15");
+		
+		
+		System.out.println("Elapse Time for Landing Page: " + elapsedTime + " milliseconds");
 	}
 	
 	//######################################### --ML PRIORITY #1-- #############################################
