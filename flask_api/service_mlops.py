@@ -7,42 +7,8 @@ from spacy import displacy
 from pattern.text.en import singularize
 import string
 
-############### CALCULATING FUNCTIONS #######################
-def my_ingredient_parser(ingredient_name, NER, isDebugging):
+from helper_methods import *
 
-    ing_brand_removed = ingredient_name[ingredient_name.find('®')+1:] #remove brand names
-
-    ing_subwords = singularize(ing_brand_removed).split() #singularize words and split them
-    
-    prepped_ing = " ".join(str(item) for item in ing_subwords)
-    prepped_ing = prepped_ing.translate(str.maketrans('', '', string.punctuation)) #remove punctuation
-
-    if isDebugging == True:
-        print(prepped_ing)
-
-    ing_essence = []
-    NERdoc = NER(prepped_ing)
-    for token in NERdoc:
-        if isDebugging == True:
-            print(token.text,token.pos_)
-
-        if token.pos_ == "NOUN" or token.pos_ == "PROPN" or token.text in cwl.include_word_list:
-            if token.text not in cwl.barred_noun_list and token.text not in cwl.color_list:
-                ing_essence.append(token.text)
-
-    parsed_ing = " ".join(str(item) for item in ing_essence)
-    for ing_cat in cwl.ing_categories:
-        if ing_cat in parsed_ing:
-            parsed_ing = ing_cat
-            break
-    
-    return parsed_ing
-
-def calculateBOW(wordset,l_doc):
-  tf_diz = dict.fromkeys(wordset,0)
-  for word in l_doc:
-      tf_diz[word]=1 #l_doc.count(word)
-  return tf_diz
 
 ############### FEATURE ENGINEERING #######################
 def updateFeatureVector(dbname):
@@ -104,18 +70,40 @@ def updateFeatureVector(dbname):
             bow0["recipeID"] = recipeID
             allBOWs.append(bow0)
 
-        #=========== PUSHING TO MONGO DB ===========
+        #=========== PERSIST FEATURE VECTORS to MongoDB (as backup)===========
         df_bow = pd.DataFrame(allBOWs)
         df_bow.set_index("recipeID", inplace = True)
         df_bow_new = df_bow.drop([""], axis = 1)
 
-        df_bow_dict = df_bow.to_dict('index')
+        df_bow_dict = df_bow_new.to_dict('index')
         f_vec_collection = "feature_vector"
         feature_collection_mongo = dbname[f_vec_collection]
         feature_collection_mongo.delete_many({})
         feature_collection_mongo.insert_one(df_bow_dict)
 
+        #=========== Calculate SIMILARITY MATRIX ===========
+        feature_vectors = df_bow_new
+        query_recipeID = feature_vectors.index[0]
+        query_feature_vector = pd.DataFrame(feature_vectors.loc[query_recipeID]).T
+        test_feature_vector = feature_vectors
+
+        sim_matrix = get_recipe_jaccard_scores(test_feature_vector, query_feature_vector, query_recipeID)
+
+        for i in range(1,test_feature_vector.shape[0]):
+            query_recipeID = feature_vectors.index[i]
+            query_feature_vector = pd.DataFrame(feature_vectors.loc[query_recipeID]).T
+            js1 = get_recipe_jaccard_scores(test_feature_vector, query_feature_vector, query_recipeID)
+            sim_matrix = pd.concat([sim_matrix, js1])
+
+
+        #=========== persist SIMILARITY MATRIX to MongoDB ===========
+        sim_matrix_dict = sim_matrix.to_dict('index')
+        sim_mat_collection_name = "similarity_matrix"
+        sim_mat_collection = dbname[sim_mat_collection_name]
+        sim_mat_collection.delete_many({})
+        sim_mat_collection.insert_one(sim_matrix_dict)
+
+
         #=========== PRINT TO EXCEL ===========  
-        countRecipes = df_bow_new.sum()
-        countRecipes.to_excel("feature_vec.xlsx")
+        sim_matrix.to_excel("similarity_matrix.xlsx")
     

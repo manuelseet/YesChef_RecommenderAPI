@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 recipe_collection_name = "RecipeNew"
 f_vec_collection_name = "feature_vector"
 u_act_collection_name = "UserActivity"
+sim_mat_collection_name = "similarity_matrix"
 
 
 def get_database(db_conn, db_name):
@@ -34,3 +35,11 @@ def get_all_recipes(dbname):
 def get_this_recipe(dbname, recipeId):
     recipe_collection = dbname[recipe_collection_name]
     return recipe_collection.find_one({"_id": ObjectId(recipeId)})
+
+
+def get_similarity_matrix(dbname):
+    sim_mat_collection = dbname[sim_mat_collection_name]
+    cursor = sim_mat_collection.find()
+    sim_mat = list(cursor)[0]
+    sim_mat.pop('_id')
+    return sim_mat
