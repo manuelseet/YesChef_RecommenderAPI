@@ -1,11 +1,7 @@
 from dao import *
-import custom_word_lists as cwl
 
 import pandas as pd
 import spacy
-from spacy import displacy
-from pattern.text.en import singularize
-import string
 
 from helper_methods import *
 
