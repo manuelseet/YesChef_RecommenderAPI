@@ -16,6 +16,7 @@ APScheduler
 requests
 bson
 sklearn
+pymongo
 ```
 
 Named Entity Recognition (Part of Speech Tagging) is done for feature vectorization in scheduled MLOps:
