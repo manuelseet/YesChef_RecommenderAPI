@@ -8,13 +8,15 @@
 The API has the following dependencies:
 ```
 Flask
-atexit
 pandas
 spacy
 pattern
 APScheduler
 requests
-json
+bson
+sklearn
+pymongo
+dnspython
 ```
 
 Named Entity Recognition (Part of Speech Tagging) is done for feature vectorization in scheduled MLOps:
