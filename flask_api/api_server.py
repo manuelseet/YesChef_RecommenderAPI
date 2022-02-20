@@ -1,3 +1,5 @@
+import joblib
+import pandas as pd
 from flask import Flask, request
 from datetime import datetime
 import atexit
@@ -10,6 +12,7 @@ from service_ml_01 import *
 from service_ml_02 import *
 from service_ml_tag import *
 from service_mlops import *
+from service_ml_03 import *
 #from service_db_seeding import *
 
 ################# MongoDB settings ##################
@@ -63,6 +66,48 @@ def predict_recipe_difficulty():
         recipeId, mongoDB)
     response_dict = {"prediction": prediction}
     return response_dict
+
+#model 3
+model_03 = joblib.load('tfidf_model3')
+
+@app.route("/searchByIngredient", methods = ["GET"])
+def recommendation_searchByRecipe():
+    req = request.args
+    req = req.to_dict()
+    ingredients = req['ingredients']
+    ingredients_query = [ingredients]
+
+    recipes_corpus_docs = Recipes_Corpus.split("', '")
+    recipes_corpus_docs = preprocess_data(recipes_corpus_docs)
+
+    model_03.fit(recipes_corpus_docs)
+    tfidf_recipes_docs = model_03.transform(recipes_corpus_docs).toarray()
+
+    features = model_03.get_feature_names_out()
+    indexes = [recipes_ingredients.iloc[i, 1] for i in range(len(recipes_ingredients))]
+    tfidf_df_recipes = pd.DataFrame(data=tfidf_recipes_docs, index=indexes, columns=features)
+
+    tfidf_query = model_03.transform(ingredients_query).toarray()
+
+    docs_similarity = cosine_similarity(tfidf_query, tfidf_df_recipes)
+    query_similarity = docs_similarity[0]
+
+    series = pd.Series(query_similarity, index=tfidf_df_recipes.index)
+    sorted_series = series.sort_values(ascending=False)
+    sorted_series = sorted_series[sorted_series != 0]
+    sorted_id = sorted_series.index
+
+    id = []
+    for e in sorted_id:
+        id.append(e)
+    print(id)
+    recommendation_list_json = json.dumps(id)
+    print(recommendation_list_json)
+    response_dict = {"prediction": recommendation_list_json}
+
+    print(response_dict)
+    return response_dict
+
 
 ##~~~~~~ ML Ops Scheduler ~~~~~~##
 
