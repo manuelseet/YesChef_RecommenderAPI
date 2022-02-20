@@ -105,7 +105,6 @@ def recommendation_searchByRecipe():
     print(recommendation_list_json)
     response_dict = {"prediction": recommendation_list_json}
 
-    print(response_dict)
     return response_dict
 
 
