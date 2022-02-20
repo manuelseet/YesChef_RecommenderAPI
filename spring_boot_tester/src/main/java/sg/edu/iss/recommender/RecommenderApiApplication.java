@@ -234,6 +234,47 @@ public class RecommenderApiApplication {
 	
 	
 	
+	//######################################### --ML PRIORITY #6-- #############################################
+	public static List<String> getRecipesByRecipeIngredients(String ingredients) 
+	{
+		String uriString1 = "http://127.0.0.1:5000/searchByIngredient?ingredients=" + ingredients;
+		HttpRequest request1 = HttpRequest.newBuilder()
+				.uri(URI.create(uriString1))
+				.method("GET", HttpRequest.BodyPublishers.noBody())
+				.build();
+		
+		List<String> recommendList = null;
+		
+		try 
+		{
+			HttpResponse<String> response1 = HttpClient.newHttpClient().send(request1, HttpResponse.BodyHandlers.ofString());
+			if (response1!= null) {
+				JSONObject jo = (JSONObject) new JSONParser().parse(response1.body());
+				recommendList = (ArrayList<String>) jo.get("recommendations");
+				
+				System.out.println("===========API PRIORITY #6: GET RECIPES BY RECIPE INGREDIENTS=================");
+				System.out.println("API Resp1 Status: \t" + response1.statusCode());
+				System.out.println("Source1 API URL: \t" + response1.uri().toString());
+		
+			}
+		}
+		catch (Exception e) {
+				System.out.println("There was a connection error");
+		}
+		
+		return recommendList;
+		
+	}
+	
+	public static void printRecipesByRecipeIngredients(List<String> recommendList) {
+		
+		System.out.println("***PRINT RESULT: GET RECIPES BY RECIPE INGREDIENTS****");
+		if (recommendList != null)
+			recommendList.stream().map(x -> "Recommended Recipe:\t" + x).forEach(System.out::println);
+		else
+			System.out.println("RecommendList is null");
+	}
+	
 	
 	
 	//# --Old tests-- #
